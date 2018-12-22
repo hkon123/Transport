@@ -8,8 +8,10 @@ class Road(object):
     def __init__(self,timeStep):
         self.cars = np.zeros(100, dtype = object)
         self.timeStep = timeStep
+        self.simLength = 100
         self.carsOnRoad = 0
         self.roadLength = 2512
+        self.averageSpeeds = np.zeros(self.simLength/self.timeStep)
 
     def addCar(self):
         self.cars[self.carsOnRoad] = Car()
@@ -23,6 +25,16 @@ class Road(object):
         index = 0
         for car in self.cars:
             if isinstance(car,int)!=True:
+                car.previousPosition = car.position
+                car.position = car.position + car.currentSpeed*self.timeStep
+                if car.position >=self.roadLength:
+                    self.removeCar(index)
+                index+=1
+
+
+    def changeSpeed(self):
+        for car in self.cars:
+            if isinstance(car,int)!=True:
                 while True:
                     if self.nearestCar(car)>3:
                         while car.currentSpeed<car.preferedSpeed:
@@ -31,11 +43,6 @@ class Road(object):
                         while self.nearestCar(car)<3:
                             car.currentSpeed -=0.1
                     break
-                car.previousPosition = car.position
-                car.position = car.position + car.currentSpeed*self.timeStep
-                if car.position >=self.roadLength:
-                    self.removeCar(index)
-                index+=1
 
 
     def nearestCar(self, currentCar):
@@ -51,12 +58,26 @@ class Road(object):
 
     def drive(self,addCarIntervall):
         currentTime = 0
-        while currentTime<100:
+        index=0
+        while currentTime<self.simLength:
             if currentTime%addCarIntervall == 0 and currentTime!=0:
                 self.addCar()
-            self.printSpeeds()
+            self.printBoth()
+            self.averageSpeeds[index] = self.averageSpeed()
+            self.changeSpeed()
             self.updatePositions()
             currentTime+=self.timeStep
+            index+=1
+
+    def averageSpeed(self):
+        count = 0
+        sum = 0
+        for car in self.cars:
+            if isinstance(car,int)!=True:
+                sum+=car.currentSpeed
+                count+=1
+        if count>0:
+            return float(sum)/float(count)
 
 
     def printPositions(self):
@@ -71,8 +92,15 @@ class Road(object):
                 print(car.currentSpeed)
         print("\n \n")
 
+    def printBoth(self):
+        for car in self.cars:
+            if isinstance(car,int)!=True:
+                print("pos: " + str(car.position) + "     speed: " + str(car.currentSpeed))
+        print("\n \n")
+
 
 A=Road(1)
 A.addCar()
 
 A.drive(2)
+print(A.averageSpeeds)

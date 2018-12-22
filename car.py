@@ -16,7 +16,7 @@ class Car(object):
         self.previousPosition = 0
 
     def setPreferedSpeed(self):
-        self.preferedSpeed = self.speedLimit + self.speedDiff*np.random.uniform(0,1)
+        self.preferedSpeed = self.speedLimit-self.speedDiff + self.speedDiff*np.random.uniform(0,1)
 
     def setLaneChangeProb(self):
         self.setLaneChangeProb = np.random.uniform(0.5,1)
