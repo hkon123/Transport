@@ -16,7 +16,14 @@ class Car(object):
         self.previousPosition = 0
 
     def setPreferedSpeed(self):
-        self.preferedSpeed = self.speedLimit-self.speedDiff + self.speedDiff*np.random.uniform(0,1)
+        self.preferedSpeed = self.speedLimit-(float(self.speedDiff)/float(2)) + self.speedDiff*np.random.uniform(0,1)
 
     def setLaneChangeProb(self):
-        self.setLaneChangeProb = np.random.uniform(0.5,1)
+        self.laneChangeProb = np.random.uniform(0.5,1)
+
+    def changeLane(self):
+        if np.random.uniform(0,1)>self.laneChangeProb:
+            if self.lane == 0:
+                self.lane = 1
+            else:
+                self.lane = 0
