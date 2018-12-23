@@ -7,12 +7,15 @@ import os
 class Road(object):
 
     def __init__(self,timeStep):
-        self.cars = np.zeros(500, dtype = object)
+        self.cars = np.zeros(1000, dtype = object)
         self.timeStep = timeStep
-        self.simLength = 100
+        self.simLength = 1000
         self.carsOnRoad = 0
         self.roadLength = 2512
-        self.averageSpeeds = np.zeros(self.simLength/self.timeStep)
+        self.averageSpeedsLane0 = np.zeros(self.simLength/self.timeStep)
+        self.averageSpeedsLane1 = np.zeros(self.simLength/self.timeStep)
+        self.changedLaneUp = 0
+        self.changedLaneDown = 0
 
     def addCar(self):
         self.cars[self.carsOnRoad] = Car()
@@ -41,16 +44,18 @@ class Road(object):
                     if self.nearestCar(car)>3:
                         while car.currentSpeed<car.preferedSpeed and self.nearestCar(car)>3:
                             car.currentSpeed +=0.1
-                        #if cantChange == False and car.lane == 1:
-                        #    minFrontDistance,minBackDistance = self.freeLaneChange(car)
-                        #    if minFrontDistance>=3 and minBackDistance>=3:
-                        #        car.changeLane()
+                        if cantChange == False and car.lane == 1:
+                            minFrontDistance,minBackDistance = self.freeLaneChange(car)
+                            if minFrontDistance>=3 and minBackDistance>=3:
+                                car.changeLane()
+                                self.changedLaneDown +=1
                     else:
                         while self.nearestCar(car)<3:
                             if (cantChange == False and car.lane == 0):
                                 minFrontDistance,minBackDistance = self.freeLaneChange(car)
                                 if minFrontDistance>=3 and minBackDistance>=3:
                                     car.changeLane()
+                                    self.changedLaneUp +=1
                                     cantChange=True
                                 else:
                                     cantChange = True
@@ -94,26 +99,34 @@ class Road(object):
         while currentTime<self.simLength:
             if currentTime%addCarIntervall == 0 and currentTime!=0:
                 self.addCar()
-            self.printBoth()
-            self.averageSpeeds[index] = self.averageSpeed()
+            #self.printBoth()
+            self.averageSpeedsLane0[index], self.averageSpeedsLane1[index] = self.averageSpeed()
             self.changeSpeed(index)
             self.updatePositions()
             currentTime+=self.timeStep
             print(index)
             index+=1
-            #if progress == 0 or currentTime%(self.simLength/100) == 0:
-            #    self.progressBar(progress)
-            #    progress+=1
+            if progress == 0 or currentTime%(self.simLength/100) == 0:
+                self.progressBar(progress)
+                progress+=1
 
     def averageSpeed(self):
-        count = 0
-        sum = 0
+        count0 = 0
+        sum0 = 0
+        count1 = 0
+        sum1 = 0
         for car in self.cars:
             if isinstance(car,int)!=True:
-                sum+=car.currentSpeed
-                count+=1
-        if count>0:
-            return float(sum)/float(count)
+                if car.lane == 0:
+                    sum0 += car.currentSpeed
+                    count0 += 1
+                else:
+                    sum1 += car.currentSpeed
+                    count1 += 1
+        if count0>0 and count1>0:
+            return float(sum0)/float(count0), float(sum1)/float(count1)
+        elif count0>0 and count1 == 0:
+            return float(sum0)/float(count0), 0
 
 
     def printPositions(self):
@@ -136,8 +149,10 @@ class Road(object):
 
     def plotAverageSpeedOverTime(self):
         time = np.arange(self.simLength/self.timeStep)
-        speeds = A.averageSpeeds*2.2369362920544
-        plt.plot(time,speeds)
+        speeds0 = self.averageSpeedsLane0*2.2369362920544
+        speeds1 = self.averageSpeedsLane1*2.2369362920544
+        plt.plot(time,speeds0)
+        plt.plot(time,speeds1, 'r')
         plt.show()
 
     def progressBar(self,count):
@@ -149,6 +164,8 @@ class Road(object):
 A=Road(1)
 A.addCar()
 
-A.drive(3)
-print(A.averageSpeeds*2.2369362920544)
+A.drive(2)
+#print(A.averageSpeeds*2.2369362920544)
+print(A.changedLaneUp)
+print(A.changedLaneDown)
 A.plotAverageSpeedOverTime()
