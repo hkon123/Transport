@@ -2,20 +2,24 @@ import numpy as np
 from car import Car
 import matplotlib.pyplot as plt
 import os
+import time
 
 
 class Road(object):
 
-    def __init__(self,timeStep):
-        self.cars = np.zeros(1000, dtype = object)
+    def __init__(self,timeStep,simLength, roadLength = 2512, minSepperation = 3):
+        self.cars = np.zeros(3000, dtype = object)
         self.timeStep = timeStep
-        self.simLength = 1000
+        self.simLength = simLength
+        self.minSepperation = minSepperation
         self.carsOnRoad = 0
-        self.roadLength = 2512
+        self.roadLength = roadLength
         self.averageSpeedsLane0 = np.zeros(self.simLength/self.timeStep)
         self.averageSpeedsLane1 = np.zeros(self.simLength/self.timeStep)
         self.changedLaneUp = 0
         self.changedLaneDown = 0
+        self.carsOnRoadAtTime = np.zeros(self.simLength/self.timeStep)
+        self.carsNotAdded = 0
 
     def addCar(self):
         self.cars[self.carsOnRoad] = Car()
@@ -37,34 +41,44 @@ class Road(object):
 
 
     def changeSpeed(self,bugvar):
+        index = 0
         for car in self.cars:
             if isinstance(car,int)!=True:
                 cantChange = False
-                while True:
-                    if self.nearestCar(car)>3:
-                        while car.currentSpeed<car.preferedSpeed and self.nearestCar(car)>3:
-                            car.currentSpeed +=0.1
-                        if cantChange == False and car.lane == 1:
+                if self.nearestCar(car)>self.minSepperation:
+                    while car.currentSpeed<car.preferedSpeed and self.nearestCar(car)>self.minSepperation:
+                        car.currentSpeed +=0.1
+                    if cantChange == False and car.lane == 1:
+                        minFrontDistance,minBackDistance = self.freeLaneChange(car)
+                        if minFrontDistance>=self.minSepperation and minBackDistance>=self.minSepperation:
+                            car.changeLane()
+                            self.changedLaneDown +=1
+                else:
+                    while self.nearestCar(car)<self.minSepperation:
+                        if cantChange == False and car.lane == 0:
                             minFrontDistance,minBackDistance = self.freeLaneChange(car)
-                            if minFrontDistance>=3 and minBackDistance>=3:
+                            if minFrontDistance>=self.minSepperation and minBackDistance>=self.minSepperation:
                                 car.changeLane()
-                                self.changedLaneDown +=1
-                    else:
-                        while self.nearestCar(car)<3:
-                            if (cantChange == False and car.lane == 0):
-                                minFrontDistance,minBackDistance = self.freeLaneChange(car)
-                                if minFrontDistance>=3 and minBackDistance>=3:
-                                    car.changeLane()
-                                    self.changedLaneUp +=1
-                                    cantChange=True
-                                else:
-                                    cantChange = True
-
+                                self.changedLaneUp +=1
+                                cantChange=True
                             else:
                                 cantChange = True
-                                car.currentSpeed -=0.1
-                    break
 
+                        else:
+                            #print(str(bugvar) +"  " + str(self.nearestCar(car)) + "  " + str(self.minSepperation))
+                            cantChange = True
+                            car.currentSpeed -=0.01
+                            if car.currentSpeed<0:
+                                #print(car.currentSpeed)
+                                #print(car.position)
+                                #car.resetCurrentSpeed()
+                                #print(self.nearestCar(car))
+                                #self.printBoth()
+                                self.removeCar(index)
+                                self.carsNotAdded +=1
+                                #time.sleep(10)
+                                break
+            index +=1
 
     def freeLaneChange(self,currentCar):
         minFrontDistance = 1000
@@ -97,14 +111,15 @@ class Road(object):
         index=0
         progress = 0
         while currentTime<self.simLength:
-            if currentTime%addCarIntervall == 0 and currentTime!=0:
+            if currentTime%addCarIntervall == 0 or currentTime==0:
                 self.addCar()
             #self.printBoth()
             self.averageSpeedsLane0[index], self.averageSpeedsLane1[index] = self.averageSpeed()
+            self.carsOnRoadAtTime[index] = self.carsOnRoadAtTimeSet()
             self.changeSpeed(index)
             self.updatePositions()
             currentTime+=self.timeStep
-            print(index)
+            #print(index)
             index+=1
             if progress == 0 or currentTime%(self.simLength/100) == 0:
                 self.progressBar(progress)
@@ -127,6 +142,9 @@ class Road(object):
             return float(sum0)/float(count0), float(sum1)/float(count1)
         elif count0>0 and count1 == 0:
             return float(sum0)/float(count0), 0
+
+    def carsOnRoadAtTimeSet(self):
+        return self.carsOnRoad
 
 
     def printPositions(self):
@@ -153,6 +171,7 @@ class Road(object):
         speeds1 = self.averageSpeedsLane1*2.2369362920544
         plt.plot(time,speeds0)
         plt.plot(time,speeds1, 'r')
+        plt.plot(time,self.carsOnRoadAtTime, 'y')
         plt.show()
 
     def progressBar(self,count):
@@ -161,11 +180,13 @@ class Road(object):
 
 
 
-A=Road(1)
-A.addCar()
+A=Road(1,2100)
 
-A.drive(2)
+
+
+A.drive(1)
 #print(A.averageSpeeds*2.2369362920544)
 print(A.changedLaneUp)
 print(A.changedLaneDown)
+print(A.carsNotAdded)
 A.plotAverageSpeedOverTime()

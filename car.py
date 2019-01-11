@@ -27,3 +27,7 @@ class Car(object):
                 self.lane = 1
             else:
                 self.lane = 0
+
+    def resetCurrentSpeed(self):
+        self.preferedSpeed = self.speedLimit-(float(self.speedDiff)/float(2)) + self.speedDiff*np.random.uniform(0,1)
+        self.currentSpeed=self.preferedSpeed
