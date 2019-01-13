@@ -7,11 +7,12 @@ import time
 
 class Road(object):
 
-    def __init__(self,timeStep,simLength, roadLength = 2512, minSepperation = 3):
+    def __init__(self,timeStep,simLength,addCarIntervall, roadLength = 2512, minSepperation = 3):
         self.cars = np.zeros(3000, dtype = object)
         self.timeStep = timeStep
         self.simLength = simLength
         self.minSepperation = minSepperation
+        self.addCarIntervall = addCarIntervall
         self.carsOnRoad = 0
         self.roadLength = roadLength
         self.averageSpeedsLane0 = np.zeros(self.simLength/self.timeStep)
@@ -106,12 +107,12 @@ class Road(object):
         return float(minDistance)/currentCar.currentSpeed
 
 
-    def drive(self,addCarIntervall):
+    def drive(self,):
         currentTime = 0
         index=0
         progress = 0
         while currentTime<self.simLength:
-            if currentTime%addCarIntervall == 0 or currentTime==0:
+            if currentTime%self.addCarIntervall == 0 or currentTime==0:
                 self.addCar()
             #self.printBoth()
             self.averageSpeedsLane0[index], self.averageSpeedsLane1[index] = self.averageSpeed()
@@ -179,14 +180,15 @@ class Road(object):
         print(str(count) + "%")
 
 
-
+'''
 A=Road(1,2100)
 
 
 
-A.drive(1)
+A.drive()
 #print(A.averageSpeeds*2.2369362920544)
 print(A.changedLaneUp)
 print(A.changedLaneDown)
 print(A.carsNotAdded)
 A.plotAverageSpeedOverTime()
+'''
