@@ -7,20 +7,38 @@ import time
 
 class Road(object):
 
-    def __init__(self,timeStep,simLength,addCarIntervall, roadLength = 2512, minSepperation = 3):
+    def __init__(self,simLength,addCarIntervall, roadLength = 2512, minSepperation = 3, currentSim =1, totalSims =1):
         self.cars = np.zeros(3000, dtype = object)
-        self.timeStep = timeStep
+        #self.timeStep = timeStep
         self.simLength = simLength
         self.minSepperation = minSepperation
         self.addCarIntervall = addCarIntervall
+        print(self.addCarIntervall)
+        self.timeStep, self.interval = self.setTimeStep()
         self.carsOnRoad = 0
         self.roadLength = roadLength
-        self.averageSpeedsLane0 = np.zeros(self.simLength/self.timeStep)
-        self.averageSpeedsLane1 = np.zeros(self.simLength/self.timeStep)
+        self.averageSpeedsLane0 = np.zeros(int(self.simLength/self.timeStep)+2)
+        self.averageSpeedsLane1 = np.zeros(int(self.simLength/self.timeStep)+2)
         self.changedLaneUp = 0
         self.changedLaneDown = 0
-        self.carsOnRoadAtTime = np.zeros(self.simLength/self.timeStep)
+        self.carsOnRoadAtTime = np.zeros(int(self.simLength/self.timeStep)+2)
         self.carsNotAdded = 0
+        self.currentSim = currentSim
+        self.totalSims = totalSims
+
+    def setTimeStep(self):
+        if isinstance(self.addCarIntervall,int) == True or self.addCarIntervall ==2 or self.addCarIntervall ==3 or self.addCarIntervall == 4 or self.addCarIntervall == 5:
+            return 1, self.addCarIntervall
+        elif self.addCarIntervall==1:
+            return 0.5, 2
+        elif self.addCarIntervall<1:
+            return self.addCarIntervall/float(2), 2
+        elif self.addCarIntervall>1 and self.addCarIntervall<2:
+            return self.addCarIntervall/float(2), 2
+        elif self.addCarIntervall>2 and self.addCarIntervall<3:
+            return self.addCarIntervall/float(3), 3
+        elif self.addCarIntervall>3:
+            return self.addCarIntervall/float(4), 4
 
     def addCar(self):
         self.cars[self.carsOnRoad] = Car()
@@ -112,7 +130,7 @@ class Road(object):
         index=0
         progress = 0
         while currentTime<self.simLength:
-            if currentTime%self.addCarIntervall == 0 or currentTime==0:
+            if index%self.interval == 0 or currentTime==0:
                 self.addCar()
             #self.printBoth()
             self.averageSpeedsLane0[index], self.averageSpeedsLane1[index] = self.averageSpeed()
@@ -122,7 +140,7 @@ class Road(object):
             currentTime+=self.timeStep
             #print(index)
             index+=1
-            if progress == 0 or currentTime%(self.simLength/100) == 0:
+            if progress == 0 or int(currentTime)%(self.simLength/100) == 0:
                 self.progressBar(progress)
                 progress+=1
 
@@ -167,9 +185,11 @@ class Road(object):
         print("\n \n")
 
     def plotAverageSpeedOverTime(self):
-        time = np.arange(self.simLength/self.timeStep)
+        time = np.arange(0,self.simLength,self.timeStep)
         speeds0 = self.averageSpeedsLane0*2.2369362920544
         speeds1 = self.averageSpeedsLane1*2.2369362920544
+        if len(time)<len(speeds0):
+            time = np.append(time, time[-1]+self.timeStep)
         plt.plot(time,speeds0)
         plt.plot(time,speeds1, 'r')
         plt.plot(time,self.carsOnRoadAtTime, 'y')
@@ -178,15 +198,17 @@ class Road(object):
     def progressBar(self,count):
         os.system("cls")
         print(str(count) + "%")
+        print("simulation: " + str(self.currentSim) + "/" + str(self.totalSims))
 
 
 '''
-A=Road(1,2100)
+A=Road(500,2.5)
 
 
 
 A.drive()
 #print(A.averageSpeeds*2.2369362920544)
+print(A.timeStep)
 print(A.changedLaneUp)
 print(A.changedLaneDown)
 print(A.carsNotAdded)

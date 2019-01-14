@@ -5,9 +5,8 @@ from road import Road
 
 class Bridges(object):
 
-    def __init__(self, nrOfSimulations, timeStep, addCarIntervals, simLength):
+    def __init__(self, nrOfSimulations, addCarIntervals, simLength):
         self.nrOfSimulations = nrOfSimulations
-        self.timeStep = timeStep
         self.simLength = simLength
         self.addCarIntervals = addCarIntervals
         self.simulations = np.zeros(self.nrOfSimulations, dtype = object)
@@ -17,7 +16,7 @@ class Bridges(object):
 
     def setup(self):
         for i in range(self.nrOfSimulations):
-            self.simulations[i] = Road(self.timeStep, self.simLength, self.addCarIntervals[i])
+            self.simulations[i] = Road(self.simLength, self.addCarIntervals[i], currentSim = i, totalSims = self.nrOfSimulations)
 
     def simulate(self):
         for i in range(self.nrOfSimulations):
@@ -31,9 +30,13 @@ class Bridges(object):
             sum1 = 0
             count1 = 0
             for speed in simulation.averageSpeedsLane0:
+                if speed == 0:
+                    continue
                 sum0 += speed
                 count0 += 1
             for speed in simulation.averageSpeedsLane1:
+                if speed == 0 :
+                    continue
                 sum1 += speed
                 count1 += 1
             self.averageSpeeds0[index]=(float(sum0)/float(count0))*2.2369362920544
@@ -46,13 +49,27 @@ class Bridges(object):
             sum = 0
             count = 0
             for cars in simulation.carsOnRoadAtTime:
+                if cars==0:
+                    continue
                 sum += cars
                 count += 1
             self.averageCarsOnBridge[index] = float(sum)/float(count)
             index += 1
 
 
-A = Bridges(3,1,[2,3,4],500)
+    def plotResults(self):
+        sim = self.addCarIntervals
+        plt.plot(sim,self.averageSpeeds0, label = "slow lane")
+        plt.plot(sim,self.averageSpeeds1, 'r', label = "fast lane")
+        plt.plot(sim,self.averageCarsOnBridge, 'y', label = "cars on bridge")
+        plt.legend(loc='best')
+        plt.xlabel("Car intesity")
+        plt.ylabel("Average speed/number of cars")
+        plt.savefig("low_accuracy3.png")
+        plt.show()
+
+
+A = Bridges(11,np.arange(0.9,3.1,0.2),500)
 
 A.setup()
 A.simulate()
@@ -61,3 +78,4 @@ A.getAverageCarsOnBridge()
 print(A.averageSpeeds0)
 print(A.averageSpeeds1)
 print(A.averageCarsOnBridge)
+A.plotResults()
