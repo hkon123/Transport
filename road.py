@@ -180,8 +180,8 @@ class Road(object):
         print(str(count) + "%")
 
 
-'''
-A=Road(1,2100)
+
+A=Road(1,500,5)
 
 
 
@@ -191,4 +191,3 @@ print(A.changedLaneUp)
 print(A.changedLaneDown)
 print(A.carsNotAdded)
 A.plotAverageSpeedOverTime()
-'''
