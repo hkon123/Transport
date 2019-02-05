@@ -65,11 +65,11 @@ class Bridges(object):
         plt.legend(loc='best')
         plt.xlabel("Car intesity")
         plt.ylabel("Average speed/number of cars")
-        plt.savefig("low_accuracy3.png")
+        plt.savefig("high_accuracy_high_intensity2.png")
         plt.show()
 
 
-A = Bridges(11,np.arange(0.9,3.1,0.2),500)
+A = Bridges(12,np.arange(3.2,5,0.15),500)
 
 A.setup()
 A.simulate()
