@@ -69,7 +69,12 @@ class Bridges(object):
         plt.show()
 
 
-A = Bridges(3,np.arange(0.05,0.19,0.05),500)
+
+
+
+
+A = Bridges(12,np.arange(3.2,5,0.15),500)
+
 
 A.setup()
 A.simulate()

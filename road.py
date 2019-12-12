@@ -9,6 +9,7 @@ class Road(object):
 
     def __init__(self,simLength,addCarIntervall, roadLength = 2512, minSepperation = 3, currentSim =1, totalSims =1):
         self.cars = np.zeros(1800, dtype = object)
+        self.cars = np.zeros(15000, dtype = object)
         #self.timeStep = timeStep
         self.simLength = simLength
         self.minSepperation = minSepperation
@@ -37,8 +38,10 @@ class Road(object):
             return self.addCarIntervall/float(2), 2
         elif self.addCarIntervall>2 and self.addCarIntervall<3:
             return self.addCarIntervall/float(3), 3
-        elif self.addCarIntervall>3:
+        elif self.addCarIntervall>3 and self.addCarIntervall<4:
             return self.addCarIntervall/float(4), 4
+        elif self.addCarIntervall>4:
+            return self.addCarIntervall/float(5), 5
 
     def addCar(self):
         self.cars[self.carsOnRoad] = Car()
@@ -196,7 +199,7 @@ class Road(object):
         plt.legend(loc = 'best')
         plt.ylabel("Average speed/number of cars")
         plt.xlabel("Time")
-        plt.savefig("Vshort.png")
+        plt.savefig("short.png")
         plt.show()
 
     def progressBar(self,count):
@@ -205,8 +208,10 @@ class Road(object):
         print("simulation: " + str(self.currentSim) + "/" + str(self.totalSims))
 
 
-'''remove comment to simulate single experiment
-A=Road(1800,1.6)
+
+
+A=Road(1800,1.9)
+
 
 
 
@@ -217,4 +222,3 @@ print(A.changedLaneUp)
 print(A.changedLaneDown)
 print(A.carsNotAdded)
 A.plotAverageSpeedOverTime()
-'''
